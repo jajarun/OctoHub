@@ -1,5 +1,5 @@
 [project]
-name = "octo-hub-client"
+name = "octo-hub-node"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
