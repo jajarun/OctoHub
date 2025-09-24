@@ -18,7 +18,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await apiPost("/login/login", { email, password });
-      router.push("/dashboard");
+      router.push("/dashboard/accounts/list");
     } catch (err) {
       const message = err instanceof Error ? err.message : "网络错误";
       setError(message);

@@ -1,5 +1,6 @@
 package io.octohub.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -16,6 +17,9 @@ import java.util.Arrays;
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
     
+    @Value("${cors.allowed-origins}")
+    private String allowedOrigins;
+    
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -31,11 +35,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // 允许的域名 - 开发环境允许localhost，生产环境需要配置具体域名
-        configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3000",
-            "http://127.0.0.1:3000"
-        ));
+        // 从配置文件读取允许的域名
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
         
         // 允许的HTTP方法
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
