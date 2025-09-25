@@ -10,9 +10,11 @@ import {
   ChevronRightIcon,
   Bars3Icon,
   BellIcon,
-  UserCircleIcon
+  UserCircleIcon,
+  WifiIcon
 } from '@heroicons/react/24/outline';
 import { apiGet, TokenManager, ApiResponse } from '@/utils/api';
+import { useWebSocket, getWebSocketStatusText, getWebSocketStatusColor } from '@/hooks/useWebSocket';
 
 interface UserInfo {
   id: number;
@@ -35,23 +37,30 @@ export default function DashboardLayout({
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // WebSocket连接管理
+  const { 
+    status: wsStatus, 
+    isConnected: wsConnected, 
+    connect: wsConnect, 
+    disconnect: wsDisconnect,
+    sendMessage,
+    lastMessage,
+    connectionCount
+  } = useWebSocket({
+    autoConnect: false, // 等待用户信息加载完成后再连接
+    pingInterval: 10000, // 50秒心跳 - 比服务端60秒超时短
+    reconnectInterval: 5000, // 5秒重连间隔
+    maxReconnectAttempts: 10 // 最大重连10次
+  });
+
   // 获取用户信息
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        // 获取用户信息
         const response = await apiGet<ApiResponse>('/user/info');
-        if (response.errcode === 0 && response.data) {
-          setUserInfo(response.data);
-        } else {
-          // 获取用户信息失败，可能token无效
-          TokenManager.removeToken();
-          router.push('/login');
-        }
+        setUserInfo(response.data);
       } catch (error) {
         console.error('获取用户信息失败:', error);
-        TokenManager.removeToken();
-        router.push('/login');
       } finally {
         setLoading(false);
       }
@@ -60,10 +69,38 @@ export default function DashboardLayout({
     fetchUserInfo();
   }, [router]);
 
+  // 用户信息加载完成后自动连接WebSocket
+  useEffect(() => {
+    if (userInfo && !loading) {
+      console.log('User info loaded, connecting to WebSocket...');
+      wsConnect().catch(error => {
+        console.error('Failed to connect to WebSocket:', error);
+      });
+    }
+  }, [userInfo, loading, wsConnect]);
+
+  // 处理WebSocket消息
+  useEffect(() => {
+    if (lastMessage) {
+      console.log('Received WebSocket message in Dashboard:', lastMessage);
+      // 这里可以根据消息类型进行不同的处理
+      // 例如：显示通知、更新状态等
+    }
+  }, [lastMessage]);
+
   // 退出登录
   const handleLogout = () => {
+    // 断开WebSocket连接
+    wsDisconnect();
     TokenManager.removeToken();
     router.push('/login');
+  };
+
+  // 手动重连WebSocket
+  const handleWebSocketReconnect = () => {
+    wsConnect().catch(error => {
+      console.error('Manual reconnect failed:', error);
+    });
   };
 
   // 加载中状态
@@ -171,6 +208,29 @@ export default function DashboardLayout({
             </div>
             
             <div className="flex items-center space-x-4">
+              {/* WebSocket连接状态指示器 */}
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleWebSocketReconnect}
+                  className={`p-2 rounded-md transition-colors ${
+                    wsConnected 
+                      ? 'text-green-500 hover:text-green-600 hover:bg-green-50' 
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  }`}
+                  title={`WebSocket: ${getWebSocketStatusText(wsStatus)} (点击重连)`}
+                >
+                  <WifiIcon className="w-5 h-5" />
+                </button>
+                <span className={`text-xs font-medium hidden sm:block ${getWebSocketStatusColor(wsStatus)}`}>
+                  {getWebSocketStatusText(wsStatus)}
+                </span>
+                {connectionCount > 0 && (
+                  <span className="text-xs text-gray-400 hidden md:block">
+                    ({connectionCount})
+                  </span>
+                )}
+              </div>
+
               <button className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100">
                 <BellIcon className="w-6 h-6" />
               </button>

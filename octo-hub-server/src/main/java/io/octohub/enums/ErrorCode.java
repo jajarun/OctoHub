@@ -12,7 +12,12 @@ public enum ErrorCode {
     //通用错误
     ERROR_LOGIN(401, "未登录"),
     LOGIN_FAILED(1001, "登录失败"),
-    SYSTEM_ERROR(1000, "系统内部错误");
+    SYSTEM_ERROR(1000, "系统内部错误"),
+    
+    // 签名验证错误
+    SIGNATURE_INVALID(1002, "签名验证失败"),
+    SIGNATURE_EXPIRED(1003, "签名已过期"),
+    SIGNATURE_MISSING(1004, "缺少签名信息");
     
     
     private final Integer code;

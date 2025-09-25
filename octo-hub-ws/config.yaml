@@ -1,0 +1,28 @@
+# OctoHub WebSocket 服务器配置文件
+
+# 服务器配置
+server:
+  port: "8000"                    # 服务器监听端口
+
+# 签名验证配置
+signature:
+  key: "your-secret-key-here"     # 签名密钥，生产环境请修改
+  timeout: 300                    # 签名有效期（秒），默认5分钟
+
+# WebSocket 配置
+websocket:
+  read_timeout: 60                # 读取超时时间（秒）
+  write_timeout: 10               # 写入超时时间（秒）
+  max_message_size: 1048576       # 最大消息大小（字节），默认1MB
+
+# 连接管理配置
+connection:
+  max_connections: 10000          # 最大连接数
+  buffer_size: 256                # 消息缓冲区大小
+  cleanup_interval: 30            # 清理检查间隔（秒）
+  stale_timeout: 120              # 连接过期时间（秒）
+
+# 日志配置
+logging:
+  level: "info"                   # 日志级别: debug, info, warn, error
+  format: "text"                  # 日志格式: text, json

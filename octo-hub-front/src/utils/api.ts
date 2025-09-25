@@ -12,6 +12,11 @@ export interface ApiResponse {
   data?: any;
 }
 
+// WebSocket相关类型定义
+export interface WebSocketConnectionResponse {
+  wsUrl: string;
+}
+
 // Token 管理工具
 export const TokenManager = {
   getToken(): string | null {

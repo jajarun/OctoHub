@@ -18,6 +18,7 @@ import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import io.octohub.service.UserDetailsServiceImpl;
 import io.octohub.security.AuthTokenFilter;
+import io.octohub.security.SignatureAuthFilter;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import io.octohub.security.AuthEntryPointJwt;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -40,6 +41,11 @@ public class SecurityConfig {
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
         return new AuthTokenFilter();
+    }
+    
+    @Bean
+    public SignatureAuthFilter signatureAuthFilter() {
+        return new SignatureAuthFilter();
     }
 
     @Bean
@@ -73,7 +79,11 @@ public class SecurityConfig {
         // 禁用H2控制台的frame保护
         http.headers(headers -> headers.frameOptions(frame -> frame.disable()));
         http.authenticationProvider(authenticationProvider());
+        
+        // 添加签名验证过滤器，在JWT过滤器之前执行
+        http.addFilterBefore(signatureAuthFilter(), UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+        
         return http.build();
     }
     

@@ -33,6 +33,13 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, 
                                   @NonNull FilterChain filterChain) throws ServletException, IOException {
         try {
+            // 如果已经通过签名验证认证，跳过JWT验证
+            if (SecurityContextHolder.getContext().getAuthentication() != null) {
+                logger.debug("Request already authenticated, skipping JWT validation");
+                filterChain.doFilter(request, response);
+                return;
+            }
+            
             String jwt = parseJwt(request);
             logger.debug("Received JWT: {}", jwt != null ? jwt.substring(0, Math.min(jwt.length(), 50)) + "..." : "null");
             if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
