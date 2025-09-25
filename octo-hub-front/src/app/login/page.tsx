@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiPost } from "@/utils/api";
+import { apiPost, TokenManager, ApiResponse } from "@/utils/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,8 +17,13 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     try {
-      await apiPost("/login/login", { email, password });
-      router.push("/dashboard/accounts/list");
+      const response = await apiPost<ApiResponse>("/login/login", { email, password });
+      if (response.errcode === 0 && response.data?.token) {
+        TokenManager.setToken(response.data.token);
+        router.push("/dashboard");
+      } else {
+        setError(response.errmsg || "登录失败");
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "网络错误";
       setError(message);

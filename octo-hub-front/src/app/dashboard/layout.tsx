@@ -1,17 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { 
   HomeIcon, 
   UsersIcon, 
-  DocumentTextIcon, 
-  CogIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   Bars3Icon,
   BellIcon,
   UserCircleIcon
 } from '@heroicons/react/24/outline';
+import { apiGet, TokenManager, ApiResponse } from '@/utils/api';
+
+interface UserInfo {
+  id: number;
+  email: string;
+}
 
 const menuItems = [
   { name: '仪表盘', href: '/dashboard', icon: HomeIcon },
@@ -23,8 +29,54 @@ export default function DashboardLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const router = useRouter();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // 获取用户信息
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        // 获取用户信息
+        const response = await apiGet<ApiResponse>('/user/info');
+        if (response.errcode === 0 && response.data) {
+          setUserInfo(response.data);
+        } else {
+          // 获取用户信息失败，可能token无效
+          TokenManager.removeToken();
+          router.push('/login');
+        }
+      } catch (error) {
+        console.error('获取用户信息失败:', error);
+        TokenManager.removeToken();
+        router.push('/login');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserInfo();
+  }, [router]);
+
+  // 退出登录
+  const handleLogout = () => {
+    TokenManager.removeToken();
+    router.push('/login');
+  };
+
+  // 加载中状态
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">加载中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -68,26 +120,37 @@ export default function DashboardLayout({
         {/* Navigation */}
         <nav className="flex-1 px-4 py-4 space-y-2">
           {menuItems.map((item) => (
-            <a
+            <Link
               key={item.name}
               href={item.href}
               className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:text-gray-900 hover:bg-gray-100 transition-colors"
             >
               <item.icon className={`${sidebarCollapsed ? 'w-6 h-6' : 'w-5 h-5 mr-3'} flex-shrink-0`} />
               {!sidebarCollapsed && <span>{item.name}</span>}
-            </a>
+            </Link>
           ))}
         </nav>
 
         {/* Sidebar footer */}
-        {!sidebarCollapsed && (
+        {!sidebarCollapsed && userInfo && (
           <div className="p-4 border-t border-gray-200">
-            <div className="flex items-center">
-              <UserCircleIcon className="w-8 h-8 text-gray-400" />
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-700">管理员</p>
-                <p className="text-xs text-gray-500">admin@octohub.com</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <UserCircleIcon className="w-8 h-8 text-gray-400" />
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-gray-700">
+                    {`用户${userInfo.id}`}
+                  </p>
+                  <p className="text-xs text-gray-500">{userInfo.email}</p>
+                </div>
               </div>
+              <button
+                onClick={handleLogout}
+                className="text-xs text-gray-500 hover:text-red-600 transition-colors"
+                title="退出登录"
+              >
+                退出
+              </button>
             </div>
           </div>
         )}
@@ -113,7 +176,11 @@ export default function DashboardLayout({
               </button>
               <div className="flex items-center">
                 <UserCircleIcon className="w-8 h-8 text-gray-400" />
-                <span className="ml-2 text-sm font-medium text-gray-700 hidden sm:block">10058</span>
+                {userInfo && (
+                  <span className="ml-2 text-sm font-medium text-gray-700 hidden sm:block">
+                    {`用户${userInfo.id}`}
+                  </span>
+                )}
               </div>
             </div>
           </div>
