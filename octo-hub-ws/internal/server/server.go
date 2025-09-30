@@ -82,8 +82,8 @@ func (s *WebSocketServer) HandleUserConnection(c *gin.Context) {
 	go s.wsHandler.HandleConnection(wsConn)
 }
 
-// HandlePCConnection 处理PC连接
-func (s *WebSocketServer) HandlePCConnection(c *gin.Context) {
+// HandleNodeConnection 处理Node节点连接
+func (s *WebSocketServer) HandleNodeConnection(c *gin.Context) {
 	pcID := c.Query("pc_id")
 	timestamp := c.Query("timestamp")
 	signature := c.Query("signature")

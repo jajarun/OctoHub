@@ -37,6 +37,21 @@ public class WebSocketService {
     }
 
     /**
+     * 生成Node节点WebSocket连接地址
+     * @param pcId Node节点ID
+     * @return WebSocket连接信息
+     */
+    public WebSocketConnectionDto generateNodeConnectionUrl(String pcId) {
+        String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
+        String signature = signatureUtils.generateSignature(pcId, timestamp);
+        
+        String wsUrl = String.format("%s://%s:%s/ws/node?pc_id=%s&timestamp=%s&signature=%s",
+                wsProtocol, wsHost, wsPort, pcId, timestamp, signature);
+        
+        return new WebSocketConnectionDto(wsUrl);
+    }
+
+    /**
      * 验证WebSocket连接签名
      * @param id 用户ID或PC ID
      * @param timestamp 时间戳

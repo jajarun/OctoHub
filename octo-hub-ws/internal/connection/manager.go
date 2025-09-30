@@ -105,6 +105,7 @@ func (m *Manager) GetConnection(connType ConnectionType, id string) (*Connection
 func (m *Manager) closeOldConnection(oldConn *Connection, reason string) {
 	if oldConn != nil {
 		// 发送断开通知
+		//前端需要退出登录 防止前端重连导致陷入死循环
 		disconnectMsg := message.SendDisconnectNotification(reason)
 		if data, err := disconnectMsg.ToJSON(); err == nil {
 			select {

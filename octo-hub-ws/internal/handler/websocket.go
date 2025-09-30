@@ -117,9 +117,6 @@ func (h *WebSocketHandler) processMessage(conn *connection.Connection, rawMessag
 		senderType = "pc"
 	}
 
-	// 🔧 修复：重置读取超时，与ping/pong处理器保持一致
-	conn.Conn.SetReadDeadline(time.Now().Add(h.readTimeout))
-
 	// 处理消息
 	response := h.messageHandler.HandleMessage(msg, conn.ID, senderType)
 	if response != nil {

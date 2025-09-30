@@ -27,7 +27,7 @@ func main() {
 
 	// 设置路由
 	r.GET("/ws/user", wsServer.HandleUserConnection)
-	r.GET("/ws/pc", wsServer.HandlePCConnection)
+	r.GET("/ws/node", wsServer.HandleNodeConnection)
 	r.GET("/status", wsServer.GetDetailedConnectionStats)
 
 	// 健康检查接口

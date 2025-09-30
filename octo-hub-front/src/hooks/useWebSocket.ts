@@ -16,7 +16,7 @@ export interface UseWebSocketOptions extends Omit<WebSocketManagerOptions, 'onMe
 }
 
 /**
- * WebSocket Hook
+ * WebSocket Hook·
  * 提供WebSocket连接管理、消息收发等功能
  */
 export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketReturn {
